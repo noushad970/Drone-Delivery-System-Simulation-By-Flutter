@@ -1,0 +1,1 @@
+$lines = Get-Content 'c:\Users\user\Desktop\Drone Deliver System Simulation\lib\widgets\map_painter.dart'; $filtered = $lines | Where-Object { $_ -notmatch '_unused' }; Set-Content 'c:\Users\user\Desktop\Drone Deliver System Simulation\lib\widgets\map_painter.dart' $filtered
