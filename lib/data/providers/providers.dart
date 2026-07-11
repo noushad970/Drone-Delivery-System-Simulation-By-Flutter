@@ -52,6 +52,17 @@ final selectedDestinationProvider = StateProvider<DestinationModel?>(
   (ref) => null,
 );
 
+/// Two ways the user can pick a destination: tap on the visual map
+/// (the original behaviour) or pick from a list of cards (a mobile-friendly
+/// alternative that mirrors the package selector).
+enum DestinationSelectionMode { map, list }
+
+/// Which destination-picking UI is currently active.
+final destinationSelectionModeProvider =
+    StateProvider<DestinationSelectionMode>(
+  (ref) => DestinationSelectionMode.map,
+);
+
 // ----- Mission simulator -----
 
 /// Lives for the duration of the simulation screen. Disposed when the user

@@ -19,6 +19,7 @@ import '../notifications/notification_overlay.dart';
 import '../package/package_selector.dart';
 import '../summary/delivery_summary_dialog.dart';
 import 'destination_info_card.dart';
+import 'destination_selector.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -179,6 +180,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final destinations = ref.watch(destinationsProvider);
     final selectedDest = ref.watch(selectedDestinationProvider);
     final order = ref.watch(currentDeliveryProvider);
+    final selectionMode = ref.watch(destinationSelectionModeProvider);
+    final media = MediaQuery.of(context);
+    final isWide = media.size.width >= 720;
+    final isLandscape = media.orientation == Orientation.landscape;
 
     ref.listen(missionControllerProvider, (prev, next) {
       if (next.value?.stage == MissionStage.completed) {
@@ -193,49 +198,38 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           SafeArea(
             child: Column(
               children: [
-                _MapHeader(onBack: () => Navigator.of(context).pop()),
+                _MapHeader(
+                  onBack: () => Navigator.of(context).pop(),
+                  selectionMode: selectionMode,
+                  onToggleSelectionMode: () {
+                    ref.read(destinationSelectionModeProvider.notifier).state =
+                        selectionMode == DestinationSelectionMode.map
+                            ? DestinationSelectionMode.list
+                            : DestinationSelectionMode.map;
+                  },
+                ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.md),
-                    child: LayoutBuilder(
-                      builder: (ctx, constraints) {
-                        return _MapArea(
-                          key: _mapKey,
+                  child: LayoutBuilder(
+                    builder: (ctx, constraints) {
+                      if (isWide || isLandscape) {
+                        return _wideLayout(
                           constraints: constraints,
                           destinations: destinations,
-                          onTap: (d) => _onMapTap(d, constraints),
+                          selectedDest: selectedDest,
+                          order: order,
+                          selectionMode: selectionMode,
                         );
-                      },
-                    ),
+                      }
+                      return _narrowLayout(
+                        constraints: constraints,
+                        destinations: destinations,
+                        selectedDest: selectedDest,
+                        order: order,
+                        selectionMode: selectionMode,
+                      );
+                    },
                   ),
                 ),
-                if (selectedDest != null) const DestinationInfoCard(),
-                if (selectedDest == null && order == null)
-                  const PackageSelector(),
-                const SizedBox(height: AppDimensions.sm),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-                  child: DroneInfoPanel(
-                    order: order,
-                    selectedDestination: order?.destination ?? selectedDest,
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.sm),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-                  child: GlassCard(
-                    padding: const EdgeInsets.all(AppDimensions.sm),
-                    child: SimulationControls(
-                      onStartDelivery: _startDelivery,
-                      onShowSummary: _showSummary,
-                      onNewOrder: _onNewOrder,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.md),
               ],
             ),
           ),
@@ -244,11 +238,172 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       ),
     );
   }
+
+  /// Layout used on narrow phones — stacked vertically with a scrollable
+  /// bottom panel so all controls remain reachable.
+  Widget _narrowLayout({
+    required BoxConstraints constraints,
+    required List<DestinationModel> destinations,
+    required DestinationModel? selectedDest,
+    required DeliveryModel? order,
+    required DestinationSelectionMode selectionMode,
+  }) {
+    final mapHeight = constraints.maxHeight * 0.45;
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+            child: SizedBox(
+              height: mapHeight.clamp(220.0, 360.0),
+              child: _MapArea(
+                key: _mapKey,
+                constraints: BoxConstraints(
+                  maxWidth: constraints.maxWidth,
+                  maxHeight: mapHeight.clamp(220.0, 360.0),
+                ),
+                destinations: destinations,
+                onTap: (d) => _onMapTap(
+                    d,
+                    BoxConstraints(
+                      maxWidth: constraints.maxWidth,
+                      maxHeight: mapHeight.clamp(220.0, 360.0),
+                    )),
+                selectionMode: selectionMode,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.sm),
+          _selectionPanel(
+            selectedDest: selectedDest,
+            order: order,
+            selectionMode: selectionMode,
+          ),
+          const SizedBox(height: AppDimensions.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+            child: DroneInfoPanel(
+              order: order,
+              selectedDestination: order?.destination ?? selectedDest,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+            child: GlassCard(
+              padding: const EdgeInsets.all(AppDimensions.sm),
+              child: SimulationControls(
+                onStartDelivery: _startDelivery,
+                onShowSummary: _showSummary,
+                onNewOrder: _onNewOrder,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.md),
+        ],
+      ),
+    );
+  }
+
+  /// Layout used on tablets / landscape — map on the left, controls
+  /// stacked on the right.
+  Widget _wideLayout({
+    required BoxConstraints constraints,
+    required List<DestinationModel> destinations,
+    required DestinationModel? selectedDest,
+    required DeliveryModel? order,
+    required DestinationSelectionMode selectionMode,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            flex: 3,
+            child: _MapArea(
+              key: _mapKey,
+              constraints: BoxConstraints(
+                maxWidth: constraints.maxWidth * 0.6,
+                maxHeight: constraints.maxHeight,
+              ),
+              destinations: destinations,
+              onTap: (d) => _onMapTap(
+                  d,
+                  BoxConstraints(
+                    maxWidth: constraints.maxWidth * 0.6,
+                    maxHeight: constraints.maxHeight,
+                  )),
+              selectionMode: selectionMode,
+            ),
+          ),
+          const SizedBox(width: AppDimensions.md),
+          Expanded(
+            flex: 2,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _selectionPanel(
+                    selectedDest: selectedDest,
+                    order: order,
+                    selectionMode: selectionMode,
+                  ),
+                  const SizedBox(height: AppDimensions.sm),
+                  DroneInfoPanel(
+                    order: order,
+                    selectedDestination: order?.destination ?? selectedDest,
+                  ),
+                  const SizedBox(height: AppDimensions.sm),
+                  GlassCard(
+                    padding: const EdgeInsets.all(AppDimensions.sm),
+                    child: SimulationControls(
+                      onStartDelivery: _startDelivery,
+                      onShowSummary: _showSummary,
+                      onNewOrder: _onNewOrder,
+                    ),
+                  ),
+                  const SizedBox(height: AppDimensions.md),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows the appropriate picker/info card depending on which selection
+  /// mode is active and whether a destination is already chosen.
+  Widget _selectionPanel({
+    required DestinationModel? selectedDest,
+    required DeliveryModel? order,
+    required DestinationSelectionMode selectionMode,
+  }) {
+    if (order != null) return const SizedBox.shrink();
+
+    if (selectedDest != null) {
+      return const DestinationInfoCard();
+    }
+
+    if (selectionMode == DestinationSelectionMode.list) {
+      return const DestinationSelector();
+    }
+
+    return const PackageSelector();
+  }
 }
 
 class _MapHeader extends StatelessWidget {
   final VoidCallback onBack;
-  const _MapHeader({required this.onBack});
+  final DestinationSelectionMode selectionMode;
+  final VoidCallback onToggleSelectionMode;
+
+  const _MapHeader({
+    required this.onBack,
+    required this.selectionMode,
+    required this.onToggleSelectionMode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -269,13 +424,22 @@ class _MapHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          const Text(
-            'Mission Control',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+          const Flexible(
+            child: Text(
+              'Mission Control',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
             ),
+          ),
+          const SizedBox(width: AppDimensions.sm),
+          _SelectionModeToggle(
+            mode: selectionMode,
+            onTap: onToggleSelectionMode,
           ),
           const Spacer(),
           Container(
@@ -301,16 +465,67 @@ class _MapHeader extends StatelessWidget {
   }
 }
 
+/// Compact segmented control letting the user switch between picking the
+/// destination directly on the map or selecting it from a card list.
+class _SelectionModeToggle extends StatelessWidget {
+  final DestinationSelectionMode mode;
+  final VoidCallback onTap;
+  const _SelectionModeToggle({required this.mode, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isMap = mode == DestinationSelectionMode.map;
+    return Tooltip(
+      message: isMap ? 'Map pick' : 'List pick',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceElevated.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isMap ? Icons.map_rounded : Icons.view_list_rounded,
+                size: 14,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isMap ? 'Map' : 'List',
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _MapArea extends ConsumerWidget {
   final BoxConstraints constraints;
   final List<DestinationModel> destinations;
   final void Function(TapDownDetails) onTap;
+  final DestinationSelectionMode selectionMode;
 
   const _MapArea({
     super.key,
     required this.constraints,
     required this.destinations,
     required this.onTap,
+    required this.selectionMode,
   });
 
   @override
@@ -318,80 +533,113 @@ class _MapArea extends ConsumerWidget {
     final mission = ref.watch(missionControllerProvider);
     final selectedDest = ref.watch(selectedDestinationProvider);
     final order = ref.watch(currentDeliveryProvider);
+    final tapEnabled = selectionMode == DestinationSelectionMode.map;
 
-    return AspectRatio(
-      aspectRatio: 16 / 11,
-      child: GestureDetector(
-        onTapDown: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: AppColors.primary.withOpacity(0.25),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.12),
-                blurRadius: 22,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: LayoutBuilder(
-            builder: (ctx, c) {
-              final size = Size(c.maxWidth, c.maxHeight);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ref.read(mapSizeProvider.notifier).state = size;
-              });
-
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: MapPainter(
-                        size: size,
-                        destinations: destinations,
-                        homeBase: CityMapData.homeBaseOn(size),
-                        selected: selectedDest,
-                        dronePosition: mission.value?.dronePosition,
-                        route: mission.value == null || order == null
-                            ? const []
-                            : <Offset>[
-                                CityMapData.homeBaseOn(size),
-                                order.destination.toScreen(size),
-                              ],
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: mission.ticks,
-                      builder: (ctx, _, __) {
-                        final frame = mission.value;
-                        if (frame == null) return const SizedBox.shrink();
-                        return Stack(
-                          children: [
-                            Positioned(
-                              left: frame.dronePosition.dx - 18,
-                              top: frame.dronePosition.dy - 18 - frame.altitude,
-                              child: Transform.rotate(
-                                angle: frame.rotationRadians,
-                                child: const DroneWidget(size: 36),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+    return LayoutBuilder(
+      builder: (ctx, c) {
+        // Use a fluid aspect ratio that adapts to the available space,
+        // falling back to 16:11 when very wide.
+        final aspect = c.maxWidth / c.maxHeight;
+        final clamped = aspect.clamp(0.85, 2.4);
+        return AspectRatio(
+          aspectRatio: clamped,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: tapEnabled ? onTap : null,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.25),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.12),
+                    blurRadius: 22,
+                    spreadRadius: 1,
                   ),
                 ],
-              );
-            },
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: LayoutBuilder(
+                builder: (ctx, inner) {
+                  final size = Size(inner.maxWidth, inner.maxHeight);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    ref.read(mapSizeProvider.notifier).state = size;
+                  });
+
+                  return Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: MapPainter(
+                            size: size,
+                            destinations: destinations,
+                            homeBase: CityMapData.homeBaseOn(size),
+                            selected: selectedDest,
+                            dronePosition: mission.value?.dronePosition,
+                            route: mission.value == null || order == null
+                                ? const []
+                                : <Offset>[
+                                    CityMapData.homeBaseOn(size),
+                                    order.destination.toScreen(size),
+                                  ],
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: ValueListenableBuilder<int>(
+                          valueListenable: mission.ticks,
+                          builder: (ctx, _, __) {
+                            final frame = mission.value;
+                            if (frame == null) return const SizedBox.shrink();
+                            return Stack(
+                              children: [
+                                Positioned(
+                                  left: frame.dronePosition.dx - 18,
+                                  top: frame.dronePosition.dy -
+                                      18 -
+                                      frame.altitude,
+                                  child: Transform.rotate(
+                                    angle: frame.rotationRadians,
+                                    child: const DroneWidget(size: 36),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      if (!tapEnabled)
+                        Positioned(
+                          left: 12,
+                          top: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.45),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'List pick active — choose a destination below',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
