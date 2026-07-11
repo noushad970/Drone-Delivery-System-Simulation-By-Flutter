@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/statistics.dart';
-import '../models/destination_model.dart';
 import '../models/package_model.dart';
-import '../../core/constants/enums.dart';
 import '../../simulation/city_map_data.dart';
 
 /// Local storage service backed by `SharedPreferences`.

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../../core/constants/enums.dart';
 import 'destination_model.dart';
 import 'package_model.dart';

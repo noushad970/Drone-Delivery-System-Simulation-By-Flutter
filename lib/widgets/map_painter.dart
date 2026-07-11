@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../data/models/destination_model.dart';
-import '../simulation/city_map_data.dart';
 
 /// CustomPainter that draws the stylized city map (roads, parks, water,
 /// buildings, home base, and markers).

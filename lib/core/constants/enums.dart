@@ -1,4 +1,5 @@
 /// Enumerations shared across the app.
+library;
 
 enum MissionStage {
   idle,

@@ -7,7 +7,6 @@ import '../../core/theme/app_colors.dart';
 import '../../data/models/delivery_record.dart';
 import '../../data/models/delivery_model.dart';
 import '../../data/models/destination_model.dart';
-import '../../data/models/package_model.dart';
 import '../../data/providers/providers.dart';
 import '../../simulation/city_map_data.dart';
 import '../../simulation/delivery_calculator.dart';
@@ -379,7 +378,7 @@ class _MapArea extends ConsumerWidget {
                               top: frame.dronePosition.dy - 18 - frame.altitude,
                               child: Transform.rotate(
                                 angle: frame.rotationRadians,
-                                child: DroneWidget(size: 36),
+                                child: const DroneWidget(size: 36),
                               ),
                             ),
                           ],

@@ -21,7 +21,7 @@ class CityMapData {
   /// deliberately placed close to the home base so every delivery is a
   /// short 1–3 km hop.
   static final List<DestinationModel> destinations = <DestinationModel>[
-    DestinationModel(
+    const DestinationModel(
       id: 'central_market',
       name: 'Central Market',
       district: 'OLD TOWN',
@@ -30,7 +30,7 @@ class CityMapData {
       x: 0.42,
       y: 0.62,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'skyline_hospital',
       name: 'Skyline Hospital',
       district: 'MEDICAL DISTRICT',
@@ -39,7 +39,7 @@ class CityMapData {
       x: 0.66,
       y: 0.56,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'bayview_apartments',
       name: 'Bayview Apartments',
       district: 'WATERFRONT',
@@ -48,7 +48,7 @@ class CityMapData {
       x: 0.24,
       y: 0.68,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'riverside_park',
       name: 'Riverside Park',
       district: 'GREENBELT',
@@ -57,7 +57,7 @@ class CityMapData {
       x: 0.36,
       y: 0.50,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'tech_park_tower',
       name: 'Tech Park Tower',
       district: 'DOWNTOWN',
@@ -66,7 +66,7 @@ class CityMapData {
       x: 0.72,
       y: 0.70,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'stadium_district',
       name: 'Stadium District',
       district: 'SPORTS',
@@ -75,7 +75,7 @@ class CityMapData {
       x: 0.30,
       y: 0.78,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'sunset_mall',
       name: 'Sunset Mall',
       district: 'COMMERCIAL',
@@ -84,7 +84,7 @@ class CityMapData {
       x: 0.62,
       y: 0.78,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'lakeside_cafe',
       name: 'Lakeside Cafe',
       district: 'LEISURE',
@@ -93,7 +93,7 @@ class CityMapData {
       x: 0.20,
       y: 0.56,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'greenwood_school',
       name: 'Greenwood School',
       district: 'EDUCATION',
@@ -102,7 +102,7 @@ class CityMapData {
       x: 0.48,
       y: 0.72,
     ),
-    DestinationModel(
+    const DestinationModel(
       id: 'airport_terminal',
       name: 'Airport Terminal',
       district: 'AVIATION',
@@ -131,7 +131,7 @@ class CityMapData {
     // weighted appropriately.
     const double aspect = 16 / 11;
     const double w = 1.0;
-    final double h = w / aspect;
+    const double h = w / aspect;
     final double dx = (destination.x - homeBaseNormalized.dx) * w;
     final double dy = (destination.y - homeBaseNormalized.dy) * h;
     // Multiply by 1000 so the units line up with [_pxPerKm] which assumes a
@@ -145,7 +145,7 @@ class CityMapData {
   static double distanceBetween(DestinationModel from, DestinationModel to) {
     const double aspect = 16 / 11;
     const double w = 1.0;
-    final double h = w / aspect;
+    const double h = w / aspect;
     final double dx = (to.x - from.x) * w;
     final double dy = (to.y - from.y) * h;
     final double pixels = (Offset(dx, dy).distance) * 1000.0;

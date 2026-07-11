@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_dimensions.dart';
 import '../../core/theme/app_colors.dart';
-import '../../data/models/destination_model.dart';
 import '../../data/providers/providers.dart';
 import '../../simulation/city_map_data.dart';
 import '../../widgets/glass_card.dart';

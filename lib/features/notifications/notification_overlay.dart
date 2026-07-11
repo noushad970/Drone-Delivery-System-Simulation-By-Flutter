@@ -44,7 +44,7 @@ class _NotificationOverlayState extends ConsumerState<NotificationOverlay>
     _controllers[n.id] = controller;
     setState(() => _active.add(n));
 
-    Future.delayed(Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       if (!mounted) return;
       controller.forward();
     });

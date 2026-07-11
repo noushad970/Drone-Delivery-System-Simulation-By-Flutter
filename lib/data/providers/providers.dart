@@ -6,7 +6,6 @@ import '../services/notification_service.dart';
 import '../services/order_generator.dart';
 import '../../simulation/mission_controller.dart';
 import '../models/destination_model.dart';
-import '../models/package_model.dart';
 import '../models/delivery_model.dart';
 import '../models/delivery_record.dart';
 import '../models/statistics.dart';
@@ -59,10 +58,10 @@ final selectedDestinationProvider = StateProvider<DestinationModel?>(
 /// leaves the simulation.
 final missionControllerProvider =
     ChangeNotifierProvider.autoDispose<MissionController>((ref) {
-      final controller = MissionController();
-      ref.onDispose(controller.dispose);
-      return controller;
-    });
+  final controller = MissionController();
+  ref.onDispose(controller.dispose);
+  return controller;
+});
 
 // ----- Statistics -----
 
@@ -93,9 +92,9 @@ class StatisticsNotifier extends StateNotifier<DeliveryStatistics> {
 
 final statisticsProvider =
     StateNotifierProvider<StatisticsNotifier, DeliveryStatistics>((ref) {
-      final storage = ref.watch(storageProvider);
-      return StatisticsNotifier(storage);
-    });
+  final storage = ref.watch(storageProvider);
+  return StatisticsNotifier(storage);
+});
 
 // ----- Camera mode -----
 

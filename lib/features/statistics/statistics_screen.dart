@@ -371,9 +371,9 @@ class _EarningsChart extends StatelessWidget {
                           sideTitles: SideTitles(
                             showTitles: true,
                             reservedSize: 32,
-                            getTitlesWidget: (v, _) => Text(
+                            getTitlesWidget: (v, _) => const Text(
                               r'$${v.toStringAsFixed(0)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.textMuted,
                                 fontSize: 10,
                               ),
@@ -610,9 +610,9 @@ class _HistoryTile extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
+            const Text(
               r'$${record.totalCost.toStringAsFixed(2)}',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.success,
                 fontSize: 14,
                 fontWeight: FontWeight.w800,

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/drone_delivery_simulation.iml" filepath="$PROJECT_DIR$/drone_delivery_simulation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/drone_delivery_simulation_android.iml" filepath="$PROJECT_DIR$/android/drone_delivery_simulation_android.iml" />
+    </modules>
+  </component>
+</project>

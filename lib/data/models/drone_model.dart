@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../../core/constants/enums.dart';
 
 /// Live state of the simulated drone.
